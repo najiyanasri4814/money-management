@@ -8,6 +8,9 @@
 
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { todayFilenameStamp } from "./csv";
+
+export { todayFilenameStamp };
 
 /**
  * Capture `element` (a rendered region of the page) into a .pdf and trigger
@@ -59,12 +62,4 @@ export async function captureElementToPdf(
   }
 
   pdf.save(filename);
-}
-
-/** "2026-10-09" style date used in export filenames. */
-export function todayFilenameStamp(): string {
-  const d = new Date();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
 }

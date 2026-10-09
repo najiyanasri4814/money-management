@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  FileSpreadsheet,
   Loader2,
   PieChart as PieIcon,
   PiggyBank,
@@ -31,6 +32,7 @@ import {
   type PeriodBucket,
 } from "@/lib/stats";
 import { formatINR } from "@/lib/format";
+import { downloadCSV, todayFilenameStamp } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
 const BUCKETS: { value: PeriodBucket; label: string }[] = [
@@ -116,6 +118,14 @@ export default function ReportsPage() {
     }
   };
 
+  const handleCsvExport = () => {
+    downloadCSV(
+      `money-report-${todayFilenameStamp()}.csv`,
+      ["Period", "Income", "Expenses", "Saved (savings-type)", "Net savings"],
+      series.map((p) => [p.label, p.income, p.expenses, p.saved, p.savings])
+    );
+  };
+
   const periodNoun = PERIOD_NOUN[bucket];
   const hasData = series.length > 0;
 
@@ -154,6 +164,10 @@ export default function ReportsPage() {
               <Download className="h-4 w-4" />
             )}
             {exporting ? "Preparing PDF…" : "Download PDF"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleCsvExport} disabled={!hasData}>
+            <FileSpreadsheet className="h-4 w-4" />
+            Export CSV
           </Button>
           {/* Period navigation: ‹ › to browse days/weeks/months/etc. */}
           <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-1.5 py-1">

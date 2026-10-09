@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, Loader2, Plus } from "lucide-react";
+import { Download, FileSpreadsheet, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { TransactionsFilters, DEFAULT_FILTERS, type FilterState } from "@/components/transactions/transactions-filters";
@@ -10,6 +10,7 @@ import { TransactionFormDialog } from "@/components/transactions/transaction-for
 import { DeleteTransactionDialog } from "@/components/transactions/delete-transaction-dialog";
 import { StatementPreview } from "@/components/transactions/statement-preview";
 import { useTransactions } from "@/components/providers/transactions-provider";
+import { downloadCSV, todayFilenameStamp } from "@/lib/csv";
 import type { Transaction, TransactionInput } from "@/lib/types";
 
 export default function TransactionsPage() {
@@ -73,6 +74,14 @@ export default function TransactionsPage() {
     await remove(t.id);
   };
 
+  const handleCsvExport = () => {
+    downloadCSV(
+      `money-transactions-${todayFilenameStamp()}.csv`,
+      ["Id", "Date", "Type", "Category", "Amount", "Payment method", "Note"],
+      filtered.map((t) => [t.id, t.date, t.type, t.category, t.amount, t.paymentMethod, t.note])
+    );
+  };
+
   const handleStatementPdf = async () => {
     if (exporting) return;
     setExporting(true);
@@ -119,6 +128,10 @@ export default function TransactionsPage() {
               <Download className="h-4 w-4" />
             )}
             {exporting ? "Preparing PDF…" : "Download PDF"}
+          </Button>
+          <Button variant="outline" onClick={handleCsvExport}>
+            <FileSpreadsheet className="h-4 w-4" />
+            Export CSV
           </Button>
           <Button variant="outline" onClick={() => void refresh()} disabled={status === "loading"}>
             Refresh
