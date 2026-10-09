@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
       ok: true,
       rowCount: data.length,
       syncedAt: new Date().toISOString(),
-      configured: Boolean(process.env.APPS_SCRIPT_URL),
+      configured: true, // URL is baked in by default; env var is an optional override
+      envOverride: Boolean(process.env.APPS_SCRIPT_URL),
     });
   } catch (err) {
     return NextResponse.json(
@@ -19,7 +20,8 @@ export async function GET(req: NextRequest) {
         ok: false,
         rowCount: 0,
         syncedAt: null,
-        configured: Boolean(process.env.APPS_SCRIPT_URL),
+        configured: true,
+        envOverride: Boolean(process.env.APPS_SCRIPT_URL),
         lastError: err instanceof AppsScriptError ? err.message : String(err),
       },
       { status: 502 }

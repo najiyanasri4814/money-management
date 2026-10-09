@@ -121,10 +121,11 @@ Required env vars (see `.env.example`):
 
 | Var | Description |
 |---|---|
-| `APPS_SCRIPT_URL` | Full Apps Script Web App URL, e.g. `https://script.google.com/macros/s/<ID>/exec` |
+| `APPS_SCRIPT_URL` | *Optional.* Apps Script Web App URL, e.g. `https://script.google.com/macros/s/<ID>/exec`. **Baked in by default** — only set this to override the endpoint. |
 | `API_ACCESS_TOKEN` | *Optional.* When set, every request to `/api/transactions*` must send `Authorization: Bearer <token>`. Use for public deployments. |
 
-The project ships with `.env.local` already pointing at your endpoint so `npm run dev` works out of the box.
+The app ships with the endpoint URL hardcoded (server-only), so it deploys to
+Vercel or any Node host with **zero** environment setup.
 
 ## Verifying end-to-end sync
 
@@ -139,8 +140,8 @@ The project ships with `.env.local` already pointing at your endpoint so `npm ru
 ```bash
 npm i -g vercel
 vercel
-# add APPS_SCRIPT_URL (and API_ACCESS_TOKEN if you enable it) under
-# Project → Settings → Environment Variables
+# APPS_SCRIPT_URL no longer needs to be set — it is baked in. Only add
+# API_ACCESS_TOKEN (if you enable it) under Project → Settings → Environment Variables
 ```
 
 Any Node host that supports Next.js works the same way. Build with `npm run build` and serve with `npm run start`.

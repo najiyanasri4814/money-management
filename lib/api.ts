@@ -20,7 +20,16 @@ import { isTransactionType } from "./validation";
  * so ALL fields must be sent on every update, or the missing ones are cleared.
  */
 
-const API_URL = process.env.APPS_SCRIPT_URL ?? "";
+/**
+ * Apps Script Web App endpoint.
+ *
+ * The URL is baked in as a default so the app works on any host (Vercel, etc.)
+ * with zero environment setup. `APPS_SCRIPT_URL`, when set, overrides it.
+ * This module is `server-only`, so the URL never reaches the browser.
+ */
+const API_URL =
+  process.env.APPS_SCRIPT_URL ??
+  "https://script.google.com/macros/s/AKfycbyMALcAgBfRtuIebTRkEFQ7JuxLhAcVHc1fJQEx2kSUt-vyQ8IOt2Wf3fDms4VMfCqngQ/exec";
 const REQUEST_TIMEOUT_MS = 20_000;
 
 export class AppsScriptError extends Error {
@@ -46,7 +55,7 @@ async function appsScriptRequest(
 ): Promise<AppsScriptResponse> {
   if (!API_URL) {
     throw new AppsScriptError(
-      "APPS_SCRIPT_URL is not configured. Add it to your environment variables."
+      "APPS_SCRIPT_URL must be set in the environment to use a custom endpoint."
     );
   }
 
@@ -61,8 +70,12 @@ async function appsScriptRequest(
   const url = `${API_URL}?${search.toString()}`;
 
   const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  // AbortSignal.any needs Node ≥ 20.3; on older runtimes (e.g. Vercel Node 18)
+  // fall back to the timeout signal alone so the request still fails fast.
   const combined =
-    signal && !signal.aborted ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+    signal && !signal.aborted && typeof AbortSignal.any === "function"
+      ? AbortSignal.any([signal, timeoutSignal])
+      : timeoutSignal;
 
   let res: Response;
   try {
