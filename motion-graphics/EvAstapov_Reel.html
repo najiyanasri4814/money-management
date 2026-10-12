@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ev Astapov — ev-reel-15s</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     ev-reel-15s — tokens
+     ============================================================ */
+  :root{
+    --canvas:#EDF0F4;
+    --ink:#000000;
+    --blue:#2B4BFF;
+    --pink:#FF3D7F;
+    --muted:#68707C;
+    --tint:#F4F6F9;
+    --line:#D8DEE8;
+    --head:'Geist',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --shadow:0 34px 70px -26px rgba(16,24,40,.22), 0 4px 16px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:#0E1116;overflow:hidden;}
+  body{font-family:var(--head);-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;}
+
+  #viewport{position:absolute;left:0;right:0;top:0;bottom:78px;overflow:hidden;cursor:pointer;}
+  #stage{
+    position:absolute;left:50%;top:50%;width:1920px;height:1080px;
+    transform:translate(-50%,-50%) scale(1);
+    transform-origin:center center;
+    background-color:var(--canvas);
+    background-image:radial-gradient(#C6CEDA 1.7px, transparent 1.8px);
+    background-size:38px 38px;background-position:-4px -4px;
+    overflow:hidden;border-radius:14px;
+    box-shadow:0 40px 120px rgba(0,0,0,.55);
+    opacity:0;
+  }
+  .mono{font-family:var(--mono);font-feature-settings:"tnum" 1;}
+  .head{font-family:var(--head);font-weight:600;letter-spacing:-.045em;}
+  .scene{position:absolute;inset:0;opacity:0;visibility:hidden;}
+
+  /* ---------- chrome ---------- */
+  .chrome{position:absolute;inset:0;z-index:70;pointer-events:none;}
+  .frame{position:absolute;left:64px;top:52px;font-size:24px;font-weight:500;color:var(--muted);letter-spacing:.01em;}
+  .tc{position:absolute;right:64px;top:52px;font-size:24px;font-weight:500;color:var(--ink);}
+  .chrome .frame,.chrome .tc{opacity:0;transform:translateY(-8px);}
+
+  /* ---------- scene 0 : hello world ---------- */
+  .s0-wrap{position:absolute;left:0;right:0;top:404px;display:flex;justify-content:center;}
+  .s0-type{position:relative;height:140px;display:block;}
+  .s0-clip{overflow:hidden;width:0;height:140px;}
+  .s0-text{display:block;white-space:nowrap;font-family:var(--mono);font-weight:500;font-size:118px;line-height:140px;color:var(--ink);}
+  .s0-caret{position:absolute;left:0;top:14px;width:8px;height:112px;background:var(--blue);border-radius:1px;opacity:0;}
+  @keyframes blink{0%,45%{opacity:1}46%,100%{opacity:0}}
+  .s0-caret.on{animation:blink 1.02s steps(1,end) infinite;}
+
+  /* ---------- scene 1 : intro ---------- */
+  .kicker{position:absolute;left:0;right:0;top:296px;text-align:center;font-size:34px;font-weight:500;color:var(--blue);}
+  .mask{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.1em;margin-bottom:-.1em;}
+  .mi{display:block;}
+  .name{position:absolute;left:0;right:0;top:368px;text-align:center;font-size:196px;line-height:1;font-weight:600;letter-spacing:-.05em;white-space:nowrap;}
+  .name .ch{display:inline-block;will-change:transform;}
+  .love-line{position:absolute;left:0;right:0;top:700px;display:flex;justify-content:center;align-items:baseline;gap:26px;}
+  .love-fixed{font-size:96px;line-height:106px;font-weight:600;letter-spacing:-.045em;color:var(--ink);}
+  .roll-mask{display:block;overflow:hidden;height:106px;width:0;padding-bottom:6px;}
+  .roll-track{display:block;}
+  .roll-track .w{display:block;height:106px;line-height:106px;width:max-content;white-space:nowrap;font-weight:600;letter-spacing:-.045em;font-size:96px;color:var(--blue);}
+
+  /* ---------- section headers ---------- */
+  .sec-head{position:absolute;left:160px;right:160px;top:132px;display:flex;align-items:baseline;justify-content:space-between;opacity:0;transform:translateY(-22px);}
+  .head-mono{font-family:var(--mono);font-weight:500;font-size:52px;color:var(--ink);letter-spacing:-.01em;}
+  .head-mono .cm{color:var(--muted);}
+  .sec-meta{font-family:var(--mono);font-size:22px;color:var(--muted);}
+
+  /* ---------- scene 2 : carousel ---------- */
+  .carousel{position:absolute;left:0;right:0;top:420px;height:440px;opacity:0;transform:translateY(56px);}
+  .track{position:absolute;left:0;top:0;display:flex;gap:40px;will-change:transform;}
+  .card{
+    width:560px;height:440px;flex:0 0 560px;background:#fff;border-radius:30px;
+    box-shadow:var(--shadow);padding:40px;position:relative;overflow:hidden;
+  }
+  .gfx{width:480px;height:210px;}
+  .gfx svg{width:100%;height:100%;display:block;overflow:visible;}
+  .card .title{font-family:var(--head);font-weight:600;font-size:44px;letter-spacing:-.05em;color:var(--ink);margin:22px 0 0;line-height:1.05;}
+  .card .desc{font-family:var(--head);font-weight:400;font-size:19px;line-height:1.35;color:#3A4048;margin:8px 0 0;}
+  .card .tag{position:absolute;left:40px;bottom:34px;font-family:var(--mono);font-size:15.5px;color:var(--muted);}
+  .card .tag b{color:var(--blue);font-weight:500;}
+  .counter{position:absolute;left:40px;top:32px;font-family:var(--head);font-weight:600;font-size:74px;letter-spacing:-.05em;color:var(--ink);line-height:1;}
+  .dots{position:absolute;left:0;right:0;top:930px;display:flex;justify-content:center;gap:12px;opacity:0;}
+  .dots i{display:block;width:12px;height:12px;border-radius:12px;background:#C6CEDA;transform-origin:center center;}
+
+  /* ---------- scene 3 : live apps ---------- */
+  .panels{position:absolute;left:0;right:0;top:330px;display:flex;justify-content:center;gap:40px;}
+  .panel{
+    width:533px;flex:0 0 533px;background:#fff;border-radius:30px;box-shadow:var(--shadow);
+    padding:36px 36px 32px;position:relative;overflow:hidden;opacity:0;transform:translateY(56px);
+  }
+  .p-top{display:flex;align-items:center;justify-content:space-between;}
+  .p-num{font-family:var(--mono);font-size:18px;color:var(--blue);font-weight:500;}
+  .p-kind{font-family:var(--mono);font-size:15px;color:var(--muted);}
+  .p-title{font-family:var(--head);font-weight:600;font-size:42px;letter-spacing:-.05em;margin:12px 0 0;line-height:1;}
+  .p-desc{font-family:var(--head);font-size:18px;line-height:1.35;color:#3A4048;margin:10px 0 0;}
+  .demo{position:relative;width:461px;height:240px;margin-top:22px;align-self:center;}
+  .demo svg{width:100%;height:100%;display:block;overflow:visible;}
+
+  .broom{position:relative;}
+  .chips{position:absolute;left:6px;top:52px;width:440px;height:160px;}
+  .chip-x{
+    position:absolute;width:100px;height:34px;border-radius:9px;border:1.5px solid var(--line);
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:14.5px;color:var(--ink);
+  }
+  .chip-x.unused{border-style:dashed;border-color:#B9C1CD;color:#98A0AC;background:#FBFCFD;}
+  .sweep{position:absolute;top:36px;left:-14px;width:7px;height:176px;border-radius:4px;background:var(--blue);box-shadow:0 0 22px rgba(43,75,255,.55);}
+  .broom-count{position:absolute;left:6px;top:4px;font-family:var(--mono);font-size:19px;color:var(--muted);}
+  .broom-count em{font-style:normal;color:var(--ink);font-weight:500;}
+  .tries{position:absolute;left:4px;top:2px;font-family:var(--mono);font-size:19px;color:var(--muted);}
+
+  /* ---------- scene 4 : lines ---------- */
+  .lines{position:absolute;left:300px;top:214px;}
+  .line{height:190px;display:flex;align-items:center;gap:34px;}
+  .ltxt{font-family:var(--head);font-weight:600;font-size:152px;letter-spacing:-.055em;line-height:1;color:var(--ink);}
+  .mask2{display:block;overflow:hidden;padding-bottom:.09em;margin-bottom:-.09em;}
+  .lcmt{font-family:var(--mono);font-size:31px;color:var(--blue);}
+  .lcmt,.ltxt{display:block;}
+
+  /* ---------- scene 5 : end card ---------- */
+  .end-l1{position:absolute;left:0;right:0;top:272px;text-align:center;font-size:120px;line-height:1;}
+  .end-l2{position:absolute;left:0;right:0;top:404px;text-align:center;font-size:250px;line-height:1;}
+  .end-site{position:absolute;left:0;right:0;top:790px;text-align:center;}
+  .site-wrap{display:inline-block;}
+  .site{display:block;font-family:var(--mono);font-size:48px;font-weight:500;color:var(--ink);letter-spacing:-.01em;}
+  .site-underline{display:block;height:4px;background:var(--blue);border-radius:2px;transform:scaleX(0);transform-origin:left center;margin-top:10px;}
+  .end-sub{position:absolute;left:0;right:0;top:884px;text-align:center;font-family:var(--mono);font-size:24px;color:var(--muted);}
+  .ver{position:absolute;right:64px;top:100px;font-family:var(--mono);font-size:24px;font-weight:500;color:var(--blue);}
+
+  /* ---------- overlays ---------- */
+  .sel{position:absolute;left:0;top:0;width:0;height:0;border:2px solid var(--blue);z-index:50;visibility:hidden;opacity:0;pointer-events:none;}
+  .sel .hd{position:absolute;width:12px;height:12px;background:#fff;border:2px solid var(--blue);border-radius:2px;}
+  .sel .hd.tl{left:-7px;top:-7px}
+  .sel .hd.tr{right:-7px;top:-7px}
+  .sel .hd.bl{left:-7px;bottom:-7px}
+  .sel .hd.br{right:-7px;bottom:-7px}
+  .sel .size{
+    position:absolute;right:-2px;top:calc(100% + 12px);background:var(--blue);color:#fff;
+    font-family:var(--mono);font-size:19px;font-weight:500;letter-spacing:.02em;
+    padding:5px 12px;border-radius:7px;white-space:nowrap;font-variant-numeric:tabular-nums;
+    box-shadow:0 8px 18px rgba(43,75,255,.3);
+  }
+  .cursor{position:absolute;left:0;top:0;z-index:60;transform-origin:0 0;visibility:hidden;opacity:0;pointer-events:none;}
+  .cursor svg{display:block;width:30px;height:37px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.28));}
+  .cursor .tag{
+    position:absolute;left:20px;top:24px;background:var(--pink);color:#fff;
+    font-family:var(--head);font-weight:600;font-size:23px;line-height:1;letter-spacing:-.01em;
+    padding:9px 15px;border-radius:11px;box-shadow:0 8px 18px rgba(255,61,127,.38);
+  }
+  .ripples{position:absolute;inset:0;z-index:55;pointer-events:none;}
+  .ripple{position:absolute;left:0;top:0;width:64px;height:64px;margin:-32px 0 0 -32px;border:2.5px solid var(--blue);border-radius:50%;opacity:0;}
+
+  /* ---------- controls ---------- */
+  #controls{
+    position:absolute;left:0;right:0;bottom:0;height:78px;background:#0E1116;
+    display:flex;align-items:center;gap:18px;padding:0 26px;border-top:1px solid #1D222B;
+    font-family:var(--mono);color:#fff;
+  }
+  #controls button{
+    font-family:var(--mono);font-size:14px;letter-spacing:.04em;color:#fff;background:#1A1F28;
+    border:1px solid #2A313C;border-radius:9px;padding:10px 16px;cursor:pointer;transition:background .15s,border-color .15s;
+  }
+  #controls button:hover{background:#232a35;border-color:#3a4453;}
+  #controls button:active{transform:translateY(1px);}
+  #scrub{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:3px;background:#2A313C;outline:none;cursor:pointer;}
+  #scrub::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 3px rgba(43,75,255,.28);}
+  #scrub::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--blue);border:2px solid #fff;}
+  #clock{font-size:13.5px;color:#9AA3B1;min-width:150px;text-align:right;font-variant-numeric:tabular-nums;}
+  #hint{font-size:12px;color:#5D6673;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <!-- ================= chrome ================= -->
+    <div class="chrome">
+      <div class="frame mono">ev-reel-15s</div>
+      <div class="tc mono" id="timecode">00:00:00</div>
+    </div>
+
+    <!-- ================= SCENE 0 — Hello World ================= -->
+    <div class="scene" id="scene0">
+      <div class="s0-wrap">
+        <div class="s0-type" id="s0type">
+          <div class="s0-clip" id="s0clip"><span class="s0-text" id="s0text">Hello World</span></div>
+          <i class="s0-caret on" id="s0caret"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SCENE 1 — intro ================= -->
+    <div class="scene" id="scene1">
+      <div class="kicker mono"><span class="mask"><span class="mi" id="kickerInner">// founding product designer, new york</span></span></div>
+      <div class="name head" id="evname"></div>
+      <div class="love-line" id="loveline">
+        <span class="love-fixed">I love making</span>
+        <span class="roll-mask" id="rollMask"><span class="roll-track" id="rollTrack">
+          <span class="w">apps</span><span class="w">systems</span><span class="w">games</span><span class="w">things</span>
+        </span></span>
+      </div>
+    </div>
+
+    <!-- ================= SCENE 2 — Featured Work ================= -->
+    <div class="scene" id="scene2">
+      <div class="sec-head" id="head2">
+        <span class="head-mono"><span class="cm">/*</span> Featured Work <span class="cm">*/</span></span>
+        <span class="sec-meta">05 selected projects</span>
+      </div>
+      <div class="carousel" id="carousel">
+        <div class="track" id="track">
+
+          <!-- 01 Captures -->
+          <article class="card" id="card0">
+            <div class="gfx">
+              <svg viewBox="0 0 480 210">
+                <rect x="56" y="8" width="136" height="194" rx="24" fill="#F4F6F9" stroke="#000" stroke-width="3"/>
+                <rect class="tile" x="72" y="26" width="48" height="48" rx="9" fill="#2B4BFF"/>
+                <rect class="tile" x="128" y="26" width="48" height="48" rx="9" fill="#D8DEE8"/>
+                <rect class="tile" x="72" y="82" width="48" height="48" rx="9" fill="#D8DEE8"/>
+                <rect class="tile" x="128" y="82" width="48" height="48" rx="9" fill="#2B4BFF"/>
+                <rect class="tile" x="72" y="138" width="104" height="48" rx="9" fill="#D8DEE8"/>
+                <g class="chip"><rect x="240" y="46" width="182" height="44" rx="22" fill="#000"/><text x="262" y="74" font-size="20" fill="#fff">ai: receipt</text></g>
+                <g class="chip"><rect x="240" y="112" width="204" height="44" rx="22" fill="#2B4BFF"/><text x="262" y="140" font-size="20" fill="#fff">ai: boarding</text></g>
+              </svg>
+            </div>
+            <h3 class="title">Captures</h3>
+            <p class="desc">A 0&rarr;1 mobile app for AI screenshot search</p>
+            <div class="tag">Product design, Vibe coding, <b>Branding</b></div>
+          </article>
+
+          <!-- 02 Discord -->
+          <article class="card" id="card1">
+            <div class="gfx">
+              <svg viewBox="0 0 480 210">
+                <g class="bub">
+                  <rect x="34" y="26" width="236" height="58" rx="29" fill="#F4F6F9" stroke="#000" stroke-width="2.5"/>
+                  <circle cx="72" cy="55" r="7" fill="#68707C"/><circle cx="98" cy="55" r="7" fill="#C6CEDA"/><circle cx="124" cy="55" r="7" fill="#C6CEDA"/>
+                </g>
+                <g class="bub">
+                  <rect x="140" y="98" width="306" height="58" rx="29" fill="#2B4BFF"/>
+                  <circle cx="180" cy="127" r="7" fill="#fff" opacity=".95"/><circle cx="206" cy="127" r="7" fill="#fff" opacity=".6"/><circle cx="232" cy="127" r="7" fill="#fff" opacity=".4"/>
+                </g>
+                <g class="bub">
+                  <rect x="34" y="170" width="182" height="34" rx="17" fill="#000"/>
+                </g>
+              </svg>
+            </div>
+            <h3 class="title">Discord</h3>
+            <p class="desc">New life for an overlooked feature</p>
+            <div class="tag">Product design</div>
+          </article>
+
+          <!-- 03 Pier Two -->
+          <article class="card" id="card2">
+            <div class="counter" id="pierCounter">1</div>
+            <div class="gfx">
+              <svg viewBox="0 0 480 210" id="pierSvg">
+                <circle cx="300" cy="105" r="17" fill="#000"/>
+              </svg>
+            </div>
+            <h3 class="title">Pier Two</h3>
+            <p class="desc">A staking platform rebuilt for 15+ networks</p>
+            <div class="tag">Product design, <b>Design system</b></div>
+          </article>
+
+          <!-- 04 TADE GO -->
+          <article class="card" id="card3">
+            <div class="gfx">
+              <svg viewBox="0 0 480 210">
+                <rect class="bar" x="34"  y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="88"  y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="142" y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="196" y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="250" y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="304" y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="358" y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+                <rect class="bar" x="412" y="40" width="34" height="140" rx="9" fill="#C6CEDA"/>
+              </svg>
+            </div>
+            <h3 class="title">TADE GO</h3>
+            <p class="desc">Generic Bootstrap into a brand-native system</p>
+            <div class="tag"><b>Design system</b>, Motion</div>
+          </article>
+
+          <!-- 05 Minemal -->
+          <article class="card" id="card4">
+            <div class="gfx">
+              <svg viewBox="0 0 480 210">
+                <text class="ehead" x="118" y="176" font-size="172" font-weight="600" letter-spacing="-8" fill="#000">&#233;</text>
+                <path class="smile" d="M 252 138 C 300 214 400 214 448 138" fill="none" stroke="#2B4BFF" stroke-width="13" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="title">Min&#233;mal</h3>
+            <p class="desc">A dental brand without the clich&#233;s</p>
+            <div class="tag"><b>Branding</b>, Website, Motion</div>
+          </article>
+
+        </div>
+      </div>
+      <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <!-- ================= SCENE 3 — Live Apps ================= -->
+    <div class="scene" id="scene3">
+      <div class="sec-head" id="head3">
+        <span class="head-mono"><span class="cm">/*</span> Live Apps <span class="cm">*/</span></span>
+        <span class="sec-meta">03 things I ship</span>
+      </div>
+      <div class="panels" id="panels">
+
+        <!-- Tendril -->
+        <div class="panel" id="panel0">
+          <div class="p-top"><span class="p-num">01</span><span class="p-kind">Chrome extension</span></div>
+          <h3 class="p-title">Tendril</h3>
+          <p class="p-desc">Any website, turned into a design reference</p>
+          <div class="demo">
+            <svg viewBox="0 0 461 240">
+              <rect x="6" y="6" width="449" height="228" rx="18" fill="#F4F6F9" stroke="#D8DEE8" stroke-width="2"/>
+              <rect x="26" y="24" width="150" height="18" rx="9" fill="#D8DEE8"/>
+              <circle cx="420" cy="33" r="6" fill="#D8DEE8"/><circle cx="400" cy="33" r="6" fill="#D8DEE8"/>
+              <rect x="26" y="62" width="126" height="78" rx="12" fill="#fff" stroke="#D8DEE8" stroke-width="1.5"/>
+              <rect x="166" y="62" width="126" height="78" rx="12" fill="#fff" stroke="#D8DEE8" stroke-width="1.5"/>
+              <rect x="306" y="62" width="129" height="62" rx="12" fill="#fff" stroke="#D8DEE8" stroke-width="1.5"/>
+              <rect x="26" y="158" width="409" height="58" rx="12" fill="#fff" stroke="#D8DEE8" stroke-width="1.5"/>
+              <path class="vine" d="M 8 208 C 104 194 128 96 224 102 C 320 108 340 194 456 156" fill="none" stroke="#2B4BFF" stroke-width="5" stroke-linecap="round"/>
+              <ellipse class="leaf" cx="92" cy="176" rx="15" ry="9" fill="#2B4BFF" transform="rotate(-26 92 176)"/>
+              <ellipse class="leaf" cx="176" cy="112" rx="15" ry="9" fill="#2B4BFF" transform="rotate(-8 176 112)"/>
+              <ellipse class="leaf" cx="276" cy="110" rx="15" ry="9" fill="#2B4BFF" transform="rotate(10 276 110)"/>
+              <ellipse class="leaf" cx="390" cy="158" rx="15" ry="9" fill="#2B4BFF" transform="rotate(28 390 158)"/>
+              <g class="sw">
+                <circle cx="300" cy="187" r="15" fill="#2B4BFF"/>
+                <circle cx="334" cy="187" r="15" fill="#FF3D7F"/>
+                <circle cx="368" cy="187" r="15" fill="#000"/>
+                <text x="46" y="200" font-size="36" font-weight="600" letter-spacing="-1.4" fill="#000">Aa</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Variables Broom -->
+        <div class="panel" id="panel1">
+          <div class="p-top"><span class="p-num">02</span><span class="p-kind">Figma plugin</span></div>
+          <h3 class="p-title">Variables Broom</h3>
+          <p class="p-desc">Finds and clears unused variables</p>
+          <div class="demo broom">
+            <div class="broom-count" id="broomCount"><em>4</em> unused</div>
+            <div class="chips" id="chips">
+              <div class="chip-x" style="left:0;top:0">bg/base</div>
+              <div class="chip-x unused" style="left:113px;top:0">sp/xs</div>
+              <div class="chip-x" style="left:226px;top:0">tx/strong</div>
+              <div class="chip-x" style="left:339px;top:0">radius/lg</div>
+              <div class="chip-x" style="left:0;top:50px">accent/blue</div>
+              <div class="chip-x unused" style="left:113px;top:50px">ico/chev</div>
+              <div class="chip-x unused" style="left:226px;top:50px">sh/old</div>
+              <div class="chip-x unused" style="left:339px;top:50px">edge/1px</div>
+              <div class="chip-x" style="left:0;top:100px">txt/muted</div>
+              <div class="chip-x" style="left:113px;top:100px">grid/8</div>
+              <div class="chip-x" style="left:226px;top:100px">card/tint</div>
+              <div class="chip-x" style="left:339px;top:100px">ink/000</div>
+            </div>
+            <div class="sweep" id="sweep"></div>
+          </div>
+        </div>
+
+        <!-- 404 the Game -->
+        <div class="panel" id="panel2">
+          <div class="p-top"><span class="p-num">03</span><span class="p-kind">web game</span></div>
+          <h3 class="p-title">404 the Game</h3>
+          <p class="p-desc">Not found? Race to the top instead</p>
+          <div class="demo">
+            <div class="tries" id="tries">3 tries</div>
+            <svg viewBox="0 0 461 240">
+              <text x="250" y="186" font-size="176" font-weight="600" text-anchor="middle"
+                    fill="none" stroke="#C6CEDA" stroke-width="2.5" letter-spacing="-10">404</text>
+              <rect x="64" y="214" width="126" height="13" rx="6.5" fill="#000"/>
+              <rect x="188" y="168" width="116" height="13" rx="6.5" fill="#000"/>
+              <rect x="306" y="122" width="106" height="13" rx="6.5" fill="#000"/>
+              <g class="flag">
+                <rect x="418" y="60" width="5" height="62" fill="#000"/>
+                <path d="M 423 62 L 456 76 L 423 90 Z" fill="#FF3D7F"/>
+              </g>
+              <rect class="sq" x="104" y="184" width="32" height="32" rx="6" fill="#2B4BFF"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= SCENE 4 — lines ================= -->
+    <div class="scene" id="scene4">
+      <div class="lines">
+        <div class="line">
+          <span class="mask2"><span class="ltxt" id="line0">Designs it.</span></span>
+          <span class="lcmt" id="cmt0">// figma</span>
+        </div>
+        <div class="line">
+          <span class="mask2"><span class="ltxt" id="line1">Codes it.</span></span>
+          <span class="lcmt" id="cmt1">// vibe coded</span>
+        </div>
+        <div class="line">
+          <span class="mask2"><span class="ltxt" id="line2">Ships it.</span></span>
+          <span class="lcmt" id="cmt2">// live</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SCENE 5 — end card ================= -->
+    <div class="scene" id="scene5">
+      <div class="ver" id="ver">v.2.1</div>
+      <div class="end-l1 head"><span class="mask2"><span class="ltxt" id="end1" style="font-size:120px">Let's discuss your</span></span></div>
+      <div class="end-l2 head"><span class="mask2"><span class="ltxt" id="end2" style="font-size:250px">next hire</span></span></div>
+      <div class="end-site">
+        <span class="site-wrap">
+          <span class="site" id="siteText">astapable.com</span>
+          <span class="site-underline" id="siteUnderline"></span>
+        </span>
+      </div>
+      <div class="end-sub" id="endSub">Ev Astapov, product designer in New York City</div>
+    </div>
+
+    <!-- ================= overlays ================= -->
+    <div class="sel" id="selBox">
+      <i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i>
+      <div class="size" id="sizeLabel">0 &times; 0</div>
+    </div>
+
+    <div class="ripples" id="ripples"></div>
+
+    <div class="cursor" id="cursor">
+      <svg viewBox="0 0 18 22" aria-hidden="true">
+        <path d="M0 0 L0 19.2 L5.4 13.8 L8.9 20.8 L12.4 19.1 L8.9 12.3 L16.6 12.3 Z"
+              fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/>
+      </svg>
+      <div class="tag">Ev</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="controls">
+  <button id="playPause" type="button">Pause</button>
+  <button id="replay" type="button">Replay</button>
+  <input id="scrub" type="range" min="0" max="15000" step="10" value="0" aria-label="Scrubber">
+  <span id="clock">00:00.00 / 00:15.00</span>
+  <span id="hint">click video or spacebar</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+/* ==========================================================================
+   Ev Astapov — "ev-reel-15s"
+   A 15s looping motion graphic on a Figma-style canvas.
+   One GSAP timeline · repeat -1 · 1920x1080 stage scaled to the viewport.
+   ========================================================================== */
+(function () {
+  var DUR = 15;
+  var stage = document.getElementById('stage');
+  var vp = document.getElementById('viewport');
+  var tl = null;
+
+  /* ---------------------------------------------------------------- utils */
+  function q(s)  { return document.querySelector(s); }
+  function qa(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+
+  function fitStage() {
+    var pad = 26;
+    var s = Math.min((vp.clientWidth - pad * 2) / 1920, (vp.clientHeight - pad * 2) / 1080);
+    s = Math.max(0.15, s);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    return s;
+  }
+
+  var SCALE = 1;
+  /* rect of an element in 1920x1080 design units, relative to the stage */
+  function rectOf(el) {
+    var r = el.getBoundingClientRect(), st = stage.getBoundingClientRect();
+    var k = st.width / 1920;
+    return { x: (r.left - st.left) / k, y: (r.top - st.top) / k, w: r.width / k, h: r.height / k };
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function frames(t) { return pad2(Math.floor((t * 30) % 30)); }
+  function tcStr(t) { return pad2(Math.floor(t / 60)) + ':' + pad2(Math.floor(t % 60)) + ':' + frames(t); }
+  function clockStr(t) { return pad2(Math.floor(t / 60)) + ':' + pad2(Math.floor(t % 60)) + '.' + pad2(Math.floor((t * 100) % 100)); }
+
+  /* ---------------------------------------------------------------- build */
+  function build() {
+    /* --- live graph: Pier Two nodes --- */
+    (function pierNodes() {
+      var svg = q('#pierSvg');
+      var CX = 300, CY = 105, R = 78;
+      for (var i = 0; i < 15; i++) {
+        var a = (i / 15) * Math.PI * 2 - Math.PI / 2;
+        var n = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        n.setAttribute('cx', (CX + Math.cos(a) * R).toFixed(1));
+        n.setAttribute('cy', (CY + Math.sin(a) * R).toFixed(1));
+        n.setAttribute('r', i % 3 === 0 ? 8 : 6);
+        n.setAttribute('fill', i % 3 === 0 ? '#2B4BFF' : (i % 2 ? '#000' : '#68707C'));
+        n.setAttribute('class', 'node');
+        svg.appendChild(n);
+      }
+    })();
+
+    /* --- live graph: ripples + name letters --- */
+    var ripples = [];
+    for (var i = 0; i < 12; i++) {
+      var d = document.createElement('div');
+      d.className = 'ripple';
+      q('#ripples').appendChild(d);
+      ripples.push(d);
+    }
+    var nameEl = q('#evname');
+    nameEl.innerHTML = 'Evgenii Astapov'
+      .split('')
+      .map(function (ch) { return '<span class="ch">' + (ch === ' ' ? '&nbsp;' : ch) + '</span>'; })
+      .join('');
+
+    /* ---------------------------------------------------------- elements */
+    var sc0 = q('#scene0'), sc1 = q('#scene1'), sc2 = q('#scene2'),
+        sc3 = q('#scene3'), sc4 = q('#scene4'), sc5 = q('#scene5');
+    var cursor = q('#cursor'), selBox = q('#selBox'), sizeLabel = q('#sizeLabel');
+    var s0type = q('#s0type'), s0clip = q('#s0clip'), s0text = q('#s0text'), s0caret = q('#s0caret');
+    var kickerInner = q('#kickerInner'), loveLine = q('#loveline');
+    var rollMask = q('#rollMask'), rollTrack = q('#rollTrack');
+    var rollWords = qa('#rollTrack .w');
+    var nameChars = qa('#evname .ch');
+    var cards = qa('.card'), track = q('#track'), carousel = q('#carousel'), dots = qa('.dots i');
+    var panels = qa('.panel');
+    var lines = [q('#line0'), q('#line1'), q('#line2')];
+    var cmts = [q('#cmt0'), q('#cmt1'), q('#cmt2')];
+    var end1 = q('#end1'), end2 = q('#end2');
+    var siteUnderline = q('#siteUnderline');
+    var chromeBits = [q('.frame'), q('.tc')];
+
+    var STEP = 600;              /* card width 560 + 40 gap           */
+    var CARD_LEFT = 680;         /* centred card x                    */
+    var CLICK_X = 1164, CLICK_Y = 706;   /* fixed cursor spot inside the card */
+
+    /* ============================== MEASURE (after fonts) ============== */
+    /* "Hello World" — fix the block width so typing grows from the left,
+       then remember the final rect for the selection box.               */
+    var s0span = rectOf(s0text);
+    s0type.style.width = Math.ceil(s0span.w) + 'px';
+    var s0rect = rectOf(s0type);
+    var s0w = s0rect.w;
+    s0clip.style.width = '0px';
+
+    /* the cycling word widths + the exact rect of "things" */
+    var RH = 106;
+    var wordW = rollWords.map(function (w) { return rectOf(w).w; });
+    rollMask.style.width = wordW[3] + 'px';
+    rollTrack.style.transform = 'translateY(' + (-3 * RH) + 'px)';
+    var thingsRect = rectOf(rollWords[3]);
+    rollMask.style.width = '0px';
+    rollTrack.style.transform = 'translateY(0px)';
+
+    /* end-card "next hire" rect */
+    var hireRect = rectOf(end2);
+
+    /* heavy SVG strokes -> normalise for dash drawing */
+    function dashLen(el) { try { return el.getTotalLength(); } catch (e) { return 400; } }
+    var vine = q('.vine'), smile = q('.smile');
+    var vineLen = dashLen(vine), smileLen = dashLen(smile);
+
+    /* ============================== INITIAL STATES ==================== */
+    gsap.set(sc0, { autoAlpha: 1 });
+    gsap.set(chromeBits, { autoAlpha: 0, y: -8 });
+    gsap.set(s0caret, { x: 0, autoAlpha: 0 });
+    gsap.set(kickerInner, { yPercent: 115, autoAlpha: 0 });
+    gsap.set(nameChars, { y: -96, autoAlpha: 0 });
+    gsap.set(loveLine, { autoAlpha: 0, y: 26 });
+    gsap.set(lines, { yPercent: 115 });
+    gsap.set(cmts, { autoAlpha: 0, x: -18 });
+    gsap.set([end1, end2], { yPercent: 115 });
+    gsap.set([q('#endSub'), q('#siteText'), q('.ver')], { autoAlpha: 0, y: 18 });
+    gsap.set(siteUnderline, { scaleX: 0 });
+    gsap.set(dots, { scaleX: 1, backgroundColor: '#C6CEDA' });
+    gsap.set(panels, { autoAlpha: 0, y: 56 });
+
+    /* cursor / selection / ripples */
+    gsap.set(cursor, { autoAlpha: 0, x: 2260, y: 250, scale: 1, transformOrigin: '0% 0%' });
+    gsap.set(ripples, { autoAlpha: 0, scale: 0.3 });
+    gsap.set(selBox, { autoAlpha: 0 });
+
+    /* carousel dimming */
+    gsap.set(cards, { opacity: 0.42 });
+    gsap.set(cards[0], { opacity: 1 });
+
+    /* --- card 01: tiles + chips --- */
+    var tiles = qa('#card0 .tile'), chipGs = qa('#card0 .chip');
+    gsap.set(tiles, { scale: 0, transformOrigin: '50% 50%' });
+    gsap.set(chipGs, { autoAlpha: 0, x: 44 });
+    /* --- card 02: bubbles --- */
+    var bubs = qa('#card1 .bub');
+    gsap.set(bubs, { scale: 0.55, autoAlpha: 0, transformOrigin: '50% 50%' });
+    /* --- card 03: nodes --- */
+    var nodes = qa('#pierSvg .node');
+    gsap.set(q('#pierCounter'), { autoAlpha: 0, y: 14 });
+    nodes.forEach(function (n) {
+      var cx = parseFloat(n.getAttribute('cx')), cy = parseFloat(n.getAttribute('cy'));
+      gsap.set(n, { x: 300 - cx, y: 105 - cy, scale: 0, transformOrigin: '50% 50%' });
+    });
+    /* --- card 04: bars --- */
+    var bars = qa('#card3 .bar');
+    gsap.set(bars, { scaleY: 0, transformOrigin: '50% 100%' });
+    var BAR_COL = ['#000', '#000', '#2B4BFF', '#000', '#2B4BFF', '#000', '#2B4BFF', '#000'];
+    /* --- card 05: é + smile --- */
+    gsap.set(q('#card4 .ehead'), { scale: 0.35, autoAlpha: 0, transformOrigin: '50% 50%' });
+    gsap.set(smile, { strokeDasharray: smileLen, strokeDashoffset: smileLen });
+
+    /* --- panel 01: tendril --- */
+    gsap.set(vine, { strokeDasharray: vineLen, strokeDashoffset: vineLen });
+    gsap.set(qa('#panel0 .leaf'), { scale: 0, transformOrigin: '50% 50%' });
+    gsap.set(qa('#panel0 .sw'), { autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%' });
+    /* --- panel 02: broom --- */
+    gsap.set(q('#sweep'), { x: 0, autoAlpha: 0 });
+    /* --- panel 03: 404 --- */
+    gsap.set(q('#panel2 .flag'), { scale: 0, transformOrigin: '100% 50%' });
+    gsap.set(q('#tries'), { autoAlpha: 0 });
+
+    /* ============================== HELPERS =========================== */
+    function clickAt(t, x, y) {
+      var r = ripples[clickN++ % ripples.length];
+      tl.set(r, { x: x, y: y, autoAlpha: 1, scale: 0.22 }, t);
+      tl.to(r, { scale: 2.7, autoAlpha: 0, duration: 0.6, ease: 'expo.out' }, t);
+      tl.to(cursor, { scale: 0.86, duration: 0.07, ease: 'power2.out' }, t);
+      tl.to(cursor, { scale: 1, duration: 0.3, ease: 'back.out(2.6)' }, t + 0.07);
+    }
+    var clickN = 0;
+
+    function updLabel() {
+      var w = parseFloat(selBox.style.width) || 0;
+      var h = parseFloat(selBox.style.height) || 0;
+      sizeLabel.innerHTML = Math.round(w) + ' &times; ' + Math.round(h);
+    }
+
+    /* draw a Figma selection box around a measured rect */
+    function selTo(t, r, dur) {
+      tl.set(selBox, { autoAlpha: 1 }, t);
+      tl.fromTo(selBox,
+        { left: r.x, top: r.y, width: 0, height: 0 },
+        { left: r.x, top: r.y, width: r.w, height: r.h, duration: dur, ease: 'expo.out',
+          immediateRender: false, onUpdate: updLabel }, t);
+    }
+
+    function activateCard(i, t) {
+      tl.to(cards, { opacity: 0.42, duration: 0.45, ease: 'power2.out' }, t);
+      tl.to(cards[i], { opacity: 1, duration: 0.45, ease: 'power2.out' }, t);
+      tl.to(track, { x: CARD_LEFT - STEP * i, duration: 0.55, ease: 'expo.inOut' }, t);
+      tl.to(dots, { scaleX: 1, backgroundColor: '#C6CEDA', duration: 0.3 }, t);
+      tl.to(dots[i], { scaleX: 2.4, backgroundColor: '#2B4BFF', duration: 0.35, ease: 'back.out(2)' }, t);
+      clickAt(t + 0.32, CLICK_X, CLICK_Y);
+    }
+
+    /* ============================== TIMELINE ========================== */
+    tl = gsap.timeline({ repeat: -1, paused: true, onUpdate: onTick });
+
+    /* ---------------------------------------------------- 0.0 → 2.0 s
+       Hello World types out, the cursor flies in and drags a box.     */
+    tl.set(sc0, { autoAlpha: 1 }, 0);
+    tl.to(chromeBits, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.06 }, 0);
+    tl.set(s0caret, { autoAlpha: 1 }, 0.1);
+    tl.to(s0clip, { width: s0w, duration: 0.8, ease: 'steps(11)' }, 0.1);
+    tl.to(s0caret, { x: s0w, duration: 0.8, ease: 'steps(11)' }, 0.1);
+    tl.to(s0caret, { autoAlpha: 0, duration: 0.18 }, 0.95);
+    tl.set(cursor, { autoAlpha: 1 }, 0.86);
+    tl.to(cursor, { x: s0rect.x, y: s0rect.y, duration: 0.55, ease: 'expo.out' }, 0.86);
+    clickAt(1.44, s0rect.x, s0rect.y);
+    selTo(1.5, s0rect, 0.34);
+    tl.to(cursor, { x: s0rect.x + s0rect.w, y: s0rect.y + s0rect.h, duration: 0.34, ease: 'expo.out' }, 1.5);
+    tl.to([s0type, selBox], { y: -240, autoAlpha: 0, duration: 0.32, ease: 'power2.in' }, 1.7);
+    tl.set(selBox, { autoAlpha: 0 }, 2.0);
+    tl.set(sc0, { autoAlpha: 0 }, 2.02);
+
+    /* ---------------------------------------------------- 2.0 → 5.0 s
+       Kicker, letter-by-letter name, the word roll.                    */
+    tl.set(sc1, { autoAlpha: 1 }, 1.96);
+    tl.to(kickerInner, { yPercent: 0, autoAlpha: 1, duration: 0.6, ease: 'expo.out' }, 2.0);
+    tl.to(nameChars, { y: 0, autoAlpha: 1, duration: 0.55, ease: 'back.out(1.8)', stagger: 0.032 }, 2.26);
+    tl.to(loveLine, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'expo.out' }, 3.15);
+    tl.to(rollMask, { width: wordW[0], duration: 0.32, ease: 'expo.out' }, 3.35);
+    tl.to(rollTrack, { y: 0, duration: 0.3, ease: 'expo.out' }, 3.35);
+    for (var wi = 1; wi < 4; wi++) {
+      var wt = 3.35 + wi * 0.25;
+      tl.to(rollTrack, { y: -wi * RH, duration: 0.22, ease: 'expo.inOut' }, wt);
+      tl.to(rollMask, { width: wordW[wi], duration: 0.3, ease: 'expo.out' }, wt);
+    }
+    tl.set(cursor, { autoAlpha: 1 }, 4.24);
+    tl.to(cursor, { x: thingsRect.x, y: thingsRect.y, duration: 0.3, ease: 'expo.out' }, 4.24);
+    clickAt(4.5, thingsRect.x, thingsRect.y);
+    selTo(4.54, thingsRect, 0.3);
+    tl.to(cursor, { x: thingsRect.x + thingsRect.w, y: thingsRect.y + thingsRect.h, duration: 0.3, ease: 'expo.out' }, 4.54);
+    tl.set(selBox, { autoAlpha: 0 }, 5.06);
+    tl.to(sc1, { autoAlpha: 0, duration: 0.22, ease: 'power1.out' }, 4.94);
+
+    /* ---------------------------------------------------- 5.0 → 9.0 s
+       Featured Work carousel: 5 cards, one step every 0.75 s.          */
+    tl.set(sc2, { autoAlpha: 1 }, 5.0);
+    tl.to(q('#head2'), { autoAlpha: 1, y: 0, duration: 0.55, ease: 'expo.out' }, 5.0);
+    tl.to(carousel, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 5.15);
+    tl.to(q('#dots'), { autoAlpha: 1, duration: 0.5 }, 5.5);
+
+    /* card 01 */
+    tl.to(tiles, { scale: 1, duration: 0.5, ease: 'back.out(2)', stagger: 0.06 }, 5.7);
+    tl.to(chipGs, { autoAlpha: 1, x: 0, duration: 0.45, ease: 'expo.out', stagger: 0.1 }, 5.95);
+    activateCard(0, 5.6);
+
+    /* card 02 */
+    tl.to(bubs, { scale: 1, autoAlpha: 1, duration: 0.5, ease: 'back.out(1.9)', stagger: 0.11 }, 6.6);
+    activateCard(1, 6.35);
+
+    /* card 03 */
+    tl.to(nodes, { x: 0, y: 0, scale: 1, duration: 0.7, ease: 'expo.out', stagger: 0.035 }, 7.15);
+    var pierObj = { v: 1 };
+    tl.set(q('#pierCounter'), { autoAlpha: 1 }, 7.15);
+    tl.to(q('#pierCounter'), { y: 0, duration: 0.4, ease: 'expo.out' }, 7.15);
+    tl.to(pierObj, { v: 15, duration: 0.8, ease: 'power2.out', snap: { v: 1 },
+        onUpdate: function () {
+          q('#pierCounter').textContent = pierObj.v + (pierObj.v >= 15 ? '+' : '');
+        } }, 7.2);
+    activateCard(2, 7.1);
+
+    /* card 04 */
+    tl.to(bars, { scaleY: 1, duration: 0.5, ease: 'power3.out', stagger: 0.05 }, 7.9);
+    tl.to(bars, { fill: function (i) { return BAR_COL[i]; }, duration: 0.35, stagger: 0.05 }, 8.15);
+    activateCard(3, 7.85);
+
+    /* card 05 */
+    tl.to(q('#card4 .ehead'), { scale: 1, autoAlpha: 1, duration: 0.6, ease: 'back.out(1.7)' }, 8.62);
+    tl.to(smile, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.inOut' }, 8.9);
+    activateCard(4, 8.6);
+
+    tl.to(carousel, { autoAlpha: 0, y: -60, duration: 0.5, ease: 'power2.in' }, 9.05);
+    tl.to(q('#head2'), { autoAlpha: 0, y: -26, duration: 0.4 }, 9.1);
+    tl.to(q('#dots'), { autoAlpha: 0, duration: 0.3 }, 9.1);
+    tl.set(sc2, { autoAlpha: 0 }, 9.6);
+
+    /* ---------------------------------------------------- 9.0 → 11.5 s
+       Live Apps: three panels, three demos, all running at once.       */
+    tl.set(cursor, { autoAlpha: 0 }, 9.3);
+    tl.set(sc3, { autoAlpha: 1 }, 9.05);
+    tl.to(q('#head3'), { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out' }, 9.05);
+    tl.to(panels, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.14 }, 9.3);
+
+    /* panel 01 — Tendril */
+    tl.to(vine, { strokeDashoffset: 0, duration: 0.75, ease: 'power2.inOut' }, 9.8);
+    tl.to(qa('#panel0 .leaf'), { scale: 1, duration: 0.45, ease: 'back.out(2.4)', stagger: 0.12 }, 10.2);
+    tl.to(qa('#panel0 .sw'), { autoAlpha: 1, scale: 1, duration: 0.45, ease: 'expo.out', stagger: 0.08 }, 10.5);
+
+    /* panel 02 — Variables Broom */
+    var unbroom = qa('#panel1 .chip-x.unused');
+    var broomObj = { v: 4 };
+    tl.set(q('#sweep'), { autoAlpha: 1 }, 9.95);
+    tl.to(q('#sweep'), { x: 470, duration: 0.75, ease: 'power2.inOut' }, 9.95);
+    tl.set(q('#sweep'), { autoAlpha: 0 }, 10.72);
+    tl.to(unbroom, { y: -70, x: 34, autoAlpha: 0, rotate: 9, duration: 0.45, ease: 'back.in(1.6)', stagger: 0.06 }, 10.5);
+    tl.to(broomObj, { v: 0, duration: 0.45, ease: 'power2.out', snap: { v: 1 },
+        onUpdate: function () {
+          var el = q('#broomCount');
+          el.innerHTML = '<em>' + broomObj.v + '</em> unused';
+          el.style.color = broomObj.v === 0 ? '#2B4BFF' : '#68707C';
+        } }, 10.5);
+
+    /* panel 03 — 404 the Game */
+    var sq = q('#panel2 .sq');
+    tl.set(q('#tries'), { autoAlpha: 1 }, 9.85);
+    tl.to(q('#tries'), { autoAlpha: 1, duration: 0.01 }, 9.85);
+    tl.to(sq, { y: -78, duration: 0.22, ease: 'power2.out' }, 9.9);
+    tl.to(sq, { y: -45, duration: 0.24, ease: 'power2.in' }, 10.12);
+    tl.to(sq, { x: 106, duration: 0.46, ease: 'none' }, 9.9);
+    tl.to(sq, { rotate: 140, duration: 0.46, ease: 'none' }, 9.9);
+    tl.to(sq, { y: -120, duration: 0.22, ease: 'power2.out' }, 10.4);
+    tl.to(sq, { y: -90, duration: 0.24, ease: 'power2.in' }, 10.62);
+    tl.to(sq, { x: 224, duration: 0.46, ease: 'none' }, 10.4);
+    tl.to(sq, { rotate: 300, duration: 0.46, ease: 'none' }, 10.4);
+    tl.to(q('#panel2 .flag'), { scale: 1, duration: 0.5, ease: 'back.out(2.4)' }, 11.02);
+    tl.to(sq, { x: 226, duration: 0.3, ease: 'power2.out' }, 10.9);
+
+    tl.to(panels, { autoAlpha: 0, y: -50, duration: 0.42, ease: 'power2.in', stagger: 0.04 }, 11.34);
+    tl.to(q('#head3'), { autoAlpha: 0, y: -26, duration: 0.36 }, 11.38);
+    tl.set(sc3, { autoAlpha: 0 }, 11.9);
+
+    /* ---------------------------------------------------- 11.5 → 13.0 s
+       Designs it. / Codes it. / Ships it.                              */
+    tl.set(sc4, { autoAlpha: 1 }, 11.5);
+    for (var li = 0; li < 3; li++) {
+      var lt = 11.52 + li * 0.24;
+      tl.to(lines[li], { yPercent: 0, duration: 0.5, ease: 'expo.out' }, lt);
+      tl.to(cmts[li], { autoAlpha: 1, x: 0, duration: 0.4, ease: 'expo.out' }, lt + 0.3);
+    }
+    tl.to(q('.lines'), { y: -60, autoAlpha: 0, duration: 0.38, ease: 'power2.in' }, 12.82);
+    tl.set(sc4, { autoAlpha: 0 }, 13.24);
+
+    /* ---------------------------------------------------- 13.0 → 15.0 s
+       End card.                                                        */
+    tl.set(sc5, { autoAlpha: 1 }, 13.05);
+    tl.to(end1, { yPercent: 0, duration: 0.55, ease: 'expo.out' }, 13.05);
+    tl.to(end2, { yPercent: 0, duration: 0.6, ease: 'expo.out' }, 13.35);
+    tl.to(q('.ver'), { autoAlpha: 1, y: 0, duration: 0.4, ease: 'expo.out' }, 13.3);
+    tl.set(cursor, { autoAlpha: 1 }, 13.98);
+    tl.to(cursor, { x: hireRect.x, y: hireRect.y, duration: 0.28, ease: 'expo.out' }, 13.98);
+    clickAt(14.24, hireRect.x, hireRect.y);
+    selTo(14.28, hireRect, 0.34);
+    tl.to(cursor, { x: hireRect.x + hireRect.w, y: hireRect.y + hireRect.h, duration: 0.34, ease: 'expo.out' }, 14.28);
+    tl.to([q('#siteText'), q('#endSub')], { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.08 }, 14.05);
+    tl.to(siteUnderline, { scaleX: 1, duration: 0.45, ease: 'expo.out' }, 14.4);
+
+    /* ---------------------------------------------------- lock to 15.0 s */
+    var endPad = DUR - tl.duration();
+    if (endPad > 0.0001) tl.to({ _: 0 }, { _: 1, duration: endPad, ease: 'none' }, tl.duration());
+
+    /* ============================== run =============================== */
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      tl.time(14.55);
+      tl.pause();
+      setPlaying(false, true);
+    } else {
+      setPlaying(true, true);
+    }
+    gsap.to(stage, { opacity: 1, duration: 0.5, ease: 'power2.out' });
+  }
+
+  /* ---------------------------------------------------------- controls */
+  var playPauseBtn = document.getElementById('playPause');
+  var replayBtn = document.getElementById('replay');
+  var scrub = document.getElementById('scrub');
+  var clock = document.getElementById('clock');
+  var timecode = document.getElementById('timecode');
+  var playing = true;
+  var scrubbing = false;
+  var wasPlaying = true;
+
+  function setPlaying(p, silent) {
+    playing = p;
+    playPauseBtn.textContent = p ? 'Pause' : 'Play';
+    if (p) tl.play(); else tl.pause();
+    if (!silent) playPauseBtn.blur();
+  }
+
+  function onTick() {
+    var t = tl.time();
+    timecode.textContent = tcStr(t);
+    if (!scrubbing) {
+      scrub.value = Math.round(t * 1000);
+      clock.textContent = clockStr(t) + ' / 00:15.00';
+    }
+  }
+
+  playPauseBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setPlaying(!playing);
+  });
+  replayBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    tl.time(0);
+    setPlaying(true);
+    replayBtn.blur();
+  });
+
+  scrub.addEventListener('pointerdown', function () {
+    scrubbing = true;
+    wasPlaying = playing;
+    if (playing) tl.pause();
+  });
+  scrub.addEventListener('input', function () {
+    var t = parseFloat(scrub.value) / 1000;
+    tl.time(t);
+    timecode.textContent = tcStr(t);
+    clock.textContent = clockStr(t) + ' / 00:15.00';
+  });
+  function endScrub() {
+    if (!scrubbing) return;
+    scrubbing = false;
+    if (wasPlaying) tl.play();
+  }
+  scrub.addEventListener('pointerup', endScrub);
+  scrub.addEventListener('pointercancel', endScrub);
+  scrub.addEventListener('change', endScrub);
+
+  vp.addEventListener('click', function () {
+    if (window.getSelection && String(window.getSelection()).length) return;
+    setPlaying(!playing);
+  });
+
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.key === ' ') {
+      e.preventDefault();
+      if (document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur();
+      setPlaying(!playing);
+    } else if (e.key === 'r' || e.key === 'R') {
+      tl.time(0); setPlaying(true);
+    }
+  });
+
+  /* ------------------------------------------------------------- boot */
+  window.addEventListener('resize', fitStage);
+  fitStage();
+
+  function boot() {
+    fitStage();
+    build();
+    fitStage();
+  }
+
+  if (document.fonts && document.fonts.load) {
+    Promise.all([
+      document.fonts.load('600 196px Geist'),
+      document.fonts.load('600 152px Geist'),
+      document.fonts.load('500 118px "Geist Mono"'),
+      document.fonts.load('500 34px "Geist Mono"')
+    ]).then(function () { return document.fonts.ready; })
+      .then(boot)
+      .catch(boot);
+  } else {
+    window.addEventListener('load', boot);
+  }
+})();
+</script>
+</body>
+</html>

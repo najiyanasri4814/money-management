@@ -223,15 +223,12 @@ export default function SettingsPage() {
                 label="Auto-refresh"
               />
             </div>
-            <Alert variant="info" title="Not real-time">
-              Changes made outside this app (directly in the spreadsheet) appear
-              on the next poll or manual refresh, not instantly.
-            </Alert>
-            <Alert variant="warning" title="Data lives in Google Sheets">
-              Adding, editing, or deleting here writes straight to Sheet1 — the
-              same columns (id, date, type, category, amount, payment method,
-              note).
-            </Alert>
+            <p className="text-xs text-slate-400">
+              Everything you add or edit here is written straight to Sheet1
+              (id, date, type, category, amount, payment method, note).
+              Changes made outside the app appear on the next poll or manual
+              refresh — the spreadsheet does not push updates.
+            </p>
           </CardContent>
         </Card>
 

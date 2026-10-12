@@ -1,0 +1,21 @@
+MoneyMngmt — Explainer voiceover script
+Voice: macOS TTS "Rishi" (en_IN), rate 172. Regenerate with:
+  say -v Rishi -r 172 -o narration/<n>_<scene>.aiff "<line>"
+
+1_intro        Meet Money Mngmt, a clean, modern dashboard that turns your Google
+               Spreadsheet into a complete personal finance tracker.
+2_overview     The Overview gives you everything at a glance. Total balance, income,
+               expenses and savings, all live from your sheet.
+3_charts       Interactive charts show income versus expenses, exactly where your
+               money goes, and how your savings grow each month.
+4_transactions In Transactions, every record is searchable, filterable and editable.
+               Then export your whole ledger to C S V or P D F.
+5_reports      Reports break your money down by month, with averages, category splits,
+               and your daily spending pace.
+6_budgets      Set monthly budgets for each category, and get a friendly warning
+               before you overshoot.
+7_settings     Everything stays in sync with Google Sheets, with auto refresh,
+               custom categories, and a one tap connection check.
+8_features     Overview, Transactions, Reports, Budgets and Settings. A full finance
+               toolkit in one fast dashboard.
+9_outro        Money Mngmt. Track, budget, and save. Smarter, every month.
