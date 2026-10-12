@@ -42,6 +42,7 @@ export const STORAGE_KEYS = {
   customPaymentMethods: "mm.customPaymentMethods",
   autoRefresh: "mm.autoRefresh",
   reportPeriod: "mm.reportPeriod",
+  budgetsLocal: "mm.budgets",
 } as const;
 
 export function getCustomCategories(): string[] {

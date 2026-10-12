@@ -1,6 +1,6 @@
 "use client";
 
-import type { HealthResponse, Transaction, TransactionInput } from "@/lib/types";
+import type { BudgetRow, HealthResponse, Transaction, TransactionInput } from "@/lib/types";
 
 /**
  * Client-side API layer. All calls go through Next.js route handlers
@@ -76,6 +76,21 @@ export async function updateTransaction(
 
 export async function deleteTransaction(id: number): Promise<void> {
   await request<DeleteResponse>(`/api/transactions/${id}`, { method: "DELETE" });
+}
+
+export async function getBudgets(): Promise<BudgetRow[]> {
+  const res = await request<{ data: BudgetRow[] }>("/api/budgets");
+  return res.data;
+}
+
+export async function saveBudgets(
+  month: string,
+  rows: { category: string; amount: number }[]
+): Promise<void> {
+  await request<{ success: boolean }>("/api/budgets", {
+    method: "PUT",
+    body: JSON.stringify({ month, rows }),
+  });
 }
 
 export async function fetchHealth(): Promise<HealthResponse> {

@@ -18,6 +18,7 @@ import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
+import { BudgetCard } from "@/components/dashboard/budget-card";
 import { IncomeExpensesBars } from "@/components/charts/income-expenses-bars";
 import { ExpenseCategoryPie } from "@/components/charts/expense-category-pie";
 import { SavingsTrendArea } from "@/components/charts/savings-trend-area";
@@ -102,6 +103,8 @@ export default function OverviewPage() {
       )}
 
       <SummaryCards />
+
+      <BudgetCard />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>

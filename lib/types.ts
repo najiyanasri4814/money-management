@@ -37,6 +37,13 @@ export interface TransactionsResponse {
   syncedAt: string;
 }
 
+/** One row in the "Budgets" spreadsheet tab (month YYYY-MM, category, amount). */
+export interface BudgetRow {
+  month: string;
+  category: string;
+  amount: number;
+}
+
 export interface HealthResponse {
   ok: boolean;
   rowCount: number;

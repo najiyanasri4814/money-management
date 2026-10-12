@@ -7,13 +7,18 @@
  * (https://script.google.com/macros/s/AKfycby.../exec).
  *
  * IMPORTANT: The currently deployed script ALREADY supports list/add/update/
- * delete over GET query parameters, so NO redeployment is required. Use this
- * file only if you want to re-host or extend the backend yourself.
+ * delete over GET query parameters. Budget actions (listBudgets/saveBudgets)
+ * are NEW — redeploy this file (Deploy → Manage deployments → edit → "New
+ * version") for the budgets feature to sync to a "Budgets" tab in the same
+ * spreadsheet.
  *
  * Spreadsheet layout (Sheet1) — DO NOT change the column order:
  *   A: id            B: date      C: type
  *   D: category      E: amount    F: payment method
  *   G: note
+ *
+ * Budgets tab layout (created automatically):
+ *   A: month (YYYY-MM)   B: category (or "total")   C: amount
  *
  * Contract:
  *   GET ?action=list            -> { success: true, data: [{id,date,type,category,amount,paymentMethod,note}, ...] }
@@ -21,6 +26,9 @@
  *                               -> { success: true, id: <newId> }        (id = max id + 1)
  *   GET ?action=update&id=N&...  -> { success: true }                     (replaces the full row — send ALL fields)
  *   GET ?action=delete&id=N      -> { success: true }
+ *   GET ?action=listBudgets      -> { success: true, data: [{month,category,amount}, ...] }
+ *   GET ?action=saveBudgets&month=YYYY-MM&budgets=<JSON array>
+ *                               -> { success: true, count: <written> }   (replaces that month's rows)
  *   anything else                -> { success: false, error: "unknown action: ..." }
  *
  * NOTE: Only doGet is implemented. Google's Apps Script platforms answers POST
@@ -32,6 +40,7 @@
 var SHEET_NAME = "Sheet1";
 var HEADER_ROW = 1;
 var TOTAL_COLUMNS = 7;
+var BUDGETS_SHEET_NAME = "Budgets";
 
 /**
  * Optional shared token gate. Leave empty "" to disable (current deployed
@@ -63,6 +72,10 @@ function doGet(e) {
         return jsonOutput({ success: true, id: updateTransaction(params) });
       case "delete":
         return jsonOutput({ success: true, id: deleteTransaction(params) });
+      case "listBudgets":
+        return jsonOutput({ success: true, data: listBudgets() });
+      case "saveBudgets":
+        return jsonOutput({ success: true, count: saveBudgets(params) });
       default:
         return jsonOutput({ success: false, error: "unknown action: " + action });
     }
@@ -145,6 +158,71 @@ function deleteTransaction(p) {
 
   sheet.deleteRow(rowIndex);
   return id;
+}
+
+/* ------------------------------------------------------------------ */
+/* Budgets ("Budgets" tab: month | category | amount)                  */
+/* ------------------------------------------------------------------ */
+
+function getBudgetsSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(BUDGETS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(BUDGETS_SHEET_NAME);
+    sheet.appendRow(["month", "category", "amount"]);
+  }
+  return sheet;
+}
+
+function listBudgets() {
+  var sheet = getBudgetsSheet();
+  var values = sheet.getDataRange().getValues();
+  var rows = [];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    if (isRowEmpty(row)) continue;
+    rows.push({
+      month: normalizeString(row[0]),
+      category: normalizeString(row[1]),
+      amount: toAmount(row[2]),
+    });
+  }
+  return rows;
+}
+
+/** Replace every budget row for `month` with the ones in the JSON payload. */
+function saveBudgets(p) {
+  var month = normalizeString(p.month).trim();
+  if (!/^\d{4}-\d{2}$/.test(month)) throw new Error("invalid month: " + month);
+
+  var budgets;
+  try {
+    budgets = JSON.parse(p.budgets || "[]");
+  } catch (e) {
+    throw new Error("budgets must be a JSON array");
+  }
+  if (!Array.isArray(budgets)) throw new Error("budgets must be an array");
+
+  var sheet = getBudgetsSheet();
+  var values = sheet.getDataRange().getValues();
+  // Delete existing rows for this month first (bottom-up so indices stay valid).
+  for (var i = values.length - 1; i >= 1; i--) {
+    if (String(values[i][0]).trim() === month) sheet.deleteRow(i + 1);
+  }
+
+  var count = 0;
+  var seen = {};
+  for (var b = 0; b < budgets.length; b++) {
+    var item = budgets[b];
+    var category = normalizeString(item.category).trim();
+    var amount = Number(item.amount);
+    if (!category || category.length > 60 || !isFinite(amount) || amount <= 0) continue;
+    if (seen[category]) continue; // last valid value wins, duplicates dropped
+    seen[category] = true;
+    sheet.appendRow([month, category, amount]);
+    count++;
+  }
+  return count;
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { normalizeDate } from "./date";
-import type { RawTransaction, Transaction, TransactionInput } from "./types";
+import type { BudgetRow, RawTransaction, Transaction, TransactionInput } from "./types";
 import { isTransactionType } from "./validation";
 
 /**
@@ -212,4 +212,49 @@ export async function deleteTransactionServer(
   signal?: AbortSignal
 ): Promise<void> {
   await appsScriptRequest({ action: "delete", id }, signal);
+}
+
+/* ------------------------------------------------------------------ */
+/* Budgets (a "Budgets" tab in the same spreadsheet)                   */
+/* ------------------------------------------------------------------ */
+
+export async function listBudgetsServer(
+  signal?: AbortSignal
+): Promise<BudgetRow[]> {
+  const payload = await appsScriptRequest({ action: "listBudgets" }, signal);
+  const raw = payload.data;
+  if (!Array.isArray(raw)) {
+    throw new AppsScriptError(
+      "Google Sheets API returned an unexpected budgets payload."
+    );
+  }
+  const rows: BudgetRow[] = [];
+  for (const item of raw as Array<Record<string, unknown>>) {
+    const month = typeof item.month === "string" ? item.month.trim() : "";
+    const category =
+      typeof item.category === "string" ? item.category.trim() : "";
+    if (!/^\d{4}-\d{2}$/.test(month) || !category) continue;
+    const amount =
+      typeof item.amount === "number"
+        ? item.amount
+        : typeof item.amount === "string"
+          ? Number(item.amount)
+          : NaN;
+    if (!Number.isFinite(amount) || amount < 0) continue;
+    rows.push({ month, category, amount });
+  }
+  return rows;
+}
+
+/** Replace the budget rows for a single month (rows already validated). */
+export async function saveBudgetsServer(
+  month: string,
+  rows: BudgetRow[],
+  signal?: AbortSignal
+): Promise<void> {
+  const budgets = rows.map((r) => ({ category: r.category, amount: r.amount }));
+  await appsScriptRequest(
+    { action: "saveBudgets", month, budgets: JSON.stringify(budgets) },
+    signal
+  );
 }

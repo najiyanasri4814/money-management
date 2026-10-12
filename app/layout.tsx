@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { TransactionsProvider } from "@/components/providers/transactions-provider";
+import { BudgetsProvider } from "@/components/providers/budgets-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <TransactionsProvider>{children}</TransactionsProvider>
+        <TransactionsProvider>
+          <BudgetsProvider>{children}</BudgetsProvider>
+        </TransactionsProvider>
       </body>
     </html>
   );

@@ -18,8 +18,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
         <footer className="mx-auto w-full max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
           <p className="text-center text-xs text-slate-400">
-            MoneyMngmt · Transactions are read from and written to your Google
-            Spreadsheet.
+            MoneyMngmt · Transactions and budgets are read from and written to
+            your Google Spreadsheet.
           </p>
         </footer>
       </div>
