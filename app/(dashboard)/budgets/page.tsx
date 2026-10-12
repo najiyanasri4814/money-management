@@ -52,12 +52,51 @@ function shiftMonth(month: string, delta: number): string {
 }
 
 export default function BudgetsPage() {
-  const { budgetsByMonth, status, notice, saving, saveBudgets } = useBudgets();
+  const {
+    budgetsByMonth,
+    status,
+    notice,
+    localBudgets,
+    saving,
+    saveBudgets,
+    refresh,
+    transferLocalBudgets,
+  } = useBudgets();
   const { transactions, status: txStatus } = useTransactions();
 
   const [month, setMonth] = React.useState<string>("");
   const [draft, setDraft] = React.useState<Draft | null>(null);
   const [newCategory, setNewCategory] = React.useState("");
+  const [transferring, setTransferring] = React.useState(false);
+  const [rechecking, setRechecking] = React.useState(false);
+
+  const localMonthCount = Object.keys(localBudgets).length;
+
+  const handleTransfer = async () => {
+    if (transferring) return;
+    setTransferring(true);
+    try {
+      await transferLocalBudgets();
+    } catch (err) {
+      window.alert(
+        `Couldn't copy budgets to the sheet yet: ${
+          err instanceof Error ? err.message : String(err)
+        }. Nothing was removed from this browser.`
+      );
+    } finally {
+      setTransferring(false);
+    }
+  };
+
+  const handleRecheck = async () => {
+    if (rechecking) return;
+    setRechecking(true);
+    try {
+      await refresh();
+    } finally {
+      setRechecking(false);
+    }
+  };
 
   React.useEffect(() => {
     setMonth(currentMonthKey());
@@ -240,6 +279,45 @@ export default function BudgetsPage() {
               <li>Refresh this page — budgets will now live in the sheet.</li>
             </ol>
           </details>
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleRecheck()}
+              disabled={rechecking}
+            >
+              {rechecking ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Info className="h-4 w-4" />
+              )}
+              {rechecking ? "Checking…" : "I've redeployed — re-check"}
+            </Button>
+          </div>
+        </Alert>
+      )}
+
+      {!notice && localMonthCount > 0 && (
+        <Alert variant="info" title="Budgets found in this browser">
+          You have {localMonthCount} month
+          {localMonthCount === 1 ? "" : "s"} of budgets saved in this browser
+          (from before the sheet connection). Copy them into your spreadsheet so
+          they sync everywhere:
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTransfer()}
+              disabled={transferring}
+            >
+              {transferring ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {transferring ? "Copying…" : "Copy to spreadsheet"}
+            </Button>
+          </div>
         </Alert>
       )}
 

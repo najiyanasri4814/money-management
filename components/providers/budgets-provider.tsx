@@ -26,10 +26,14 @@ interface BudgetsContextValue {
   storageMode: BudgetStorageMode;
   /** Banner text when budgets aren't synced to the sheet yet. */
   notice: string | null;
+  /** Browser-only budgets found (from before the sheet backend was available). */
+  localBudgets: Record<string, Budgets>;
   saving: boolean;
   refresh: () => Promise<void>;
   /** Persist one month's budgets (sheet when available, browser otherwise). */
   saveBudgets: (month: string, budgets: Budgets) => Promise<void>;
+  /** Copy any browser-only budgets into the sheet (after an Apps Script redeploy). */
+  transferLocalBudgets: () => Promise<number>;
 }
 
 const BudgetsContext = React.createContext<BudgetsContextValue | null>(null);
@@ -82,6 +86,33 @@ export function BudgetsProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const localBudgets = React.useMemo(() => readLocalBudgets(), [storageMode]);
+
+  const transferLocalBudgets = React.useCallback(async (): Promise<number> => {
+    const local = readLocalBudgets();
+    const entries = Object.entries(local).filter(([m]) => /^\d{4}-\d{2}$/.test(m));
+    let done = 0;
+    for (const [month, budgets] of entries) {
+      await apiSaveBudgets(month, budgetsToRows(month, budgets));
+      done++;
+    }
+    writeLocalBudgets({}); // transferred — clear the browser copy
+    setBudgetsByMonth((prev) => {
+      const next = { ...prev };
+      for (const [month, budgets] of entries) next[month] = budgets;
+      return next;
+    });
+    if (done > 0) {
+      notify(
+        done === 1
+          ? "Copied your browser budget to the spreadsheet."
+          : `Copied ${done} months of budgets to the spreadsheet.`,
+        "success"
+      );
+    }
+    return done;
+  }, [notify]);
 
   const saveBudgets = React.useCallback(
     async (month: string, budgets: Budgets) => {
@@ -165,9 +196,11 @@ export function BudgetsProvider({ children }: { children: React.ReactNode }) {
     status,
     storageMode,
     notice,
+    localBudgets,
     saving,
     refresh,
     saveBudgets,
+    transferLocalBudgets,
   };
 
   return (
