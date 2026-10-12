@@ -133,3 +133,13 @@ export function monthLabel(key: string, withYear = true): string {
 export function quarterLabel(key: string): string {
   return key;
 }
+
+/** Full month + year label, e.g. "October 2026" (raw key when unparseable). */
+export function monthLongLabel(key: string): string {
+  const m = key.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return key;
+  return new Date(Number(m[1]), Number(m[2]) - 1, 1).toLocaleString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+}

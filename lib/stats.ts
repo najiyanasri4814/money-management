@@ -145,6 +145,26 @@ export function periodSeries(
   return series;
 }
 
+export interface MonthTotals {
+  income: number;
+  expenses: number;
+  /** Income − expenses for the month. Savings are set aside, so they are excluded from cash flow. */
+  net: number;
+}
+
+/** Totals scoped to a single YYYY-MM month, using the same rules as computeTotals. */
+export function monthTotals(transactions: Transaction[], month: string): MonthTotals {
+  let income = 0;
+  let expenses = 0;
+  for (const t of transactions) {
+    if (monthKey(t.date) !== month) continue;
+    const amount = Number.isFinite(t.amount) ? t.amount : 0;
+    if (t.type === "income") income += amount;
+    else if (t.type === "expense") expenses += amount;
+  }
+  return { income, expenses, net: income - expenses };
+}
+
 export interface CategorySlice {
   name: string;
   value: number;

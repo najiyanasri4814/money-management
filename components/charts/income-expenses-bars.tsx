@@ -22,10 +22,28 @@ export interface BarsDatum {
 interface Props {
   data: BarsDatum[];
   height?: number;
+  /** Text shown when there is nothing to chart. */
+  emptyText?: string;
 }
 
-export function IncomeExpensesBars({ data, height = 280 }: Props) {
+export function IncomeExpensesBars({
+  data,
+  height = 280,
+  emptyText = "No transactions yet — add one to get started.",
+}: Props) {
   const hasSavings = data.some((d) => (d.savings ?? 0) > 0);
+
+  if (data.length === 0) {
+    return (
+      <div
+        className="flex items-center justify-center text-center text-sm text-slate-400"
+        style={{ height }}
+      >
+        {emptyText}
+      </div>
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barGap={4}>

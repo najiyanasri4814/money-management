@@ -15,6 +15,7 @@ import {
   emptyBudgets,
   totalBudgetStatus,
 } from "@/lib/budgets";
+import { monthLongLabel } from "@/lib/date";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -22,12 +23,15 @@ function pctLabel(pct: number): string {
   return `${Math.min(999, Math.round(pct * 100))}%`;
 }
 
-/** Overview card: this month's overall budget + at-risk categories. */
-export function BudgetCard() {
+/** Overview card: the selected month's overall budget + at-risk categories. */
+export function BudgetCard({ month: monthProp }: { month?: string }) {
   const { transactions, status: txStatus } = useTransactions();
   const { budgetsByMonth, status: budgetStatus } = useBudgets();
 
-  const month = currentMonthKey();
+  const month = monthProp ?? currentMonthKey();
+  const budgetTitle = monthProp
+    ? `${monthLongLabel(month)} budget`
+    : "This month's budget";
   const budgets = budgetsByMonth[month] ?? emptyBudgets();
   const total = totalBudgetStatus(transactions, budgets, month);
   const atRisk = categoryBudgets(transactions, budgets, month)
@@ -46,7 +50,7 @@ export function BudgetCard() {
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="flex items-center gap-2">
             <Target className="h-4 w-4 text-slate-400" />
-            This month&apos;s budget
+            {budgetTitle}
           </CardTitle>
           <Button asChild variant="ghost" size="sm" className="text-slate-500">
             <Link href="/budgets">
@@ -70,7 +74,7 @@ export function BudgetCard() {
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2">
           <Target className="h-4 w-4 text-slate-400" />
-          This month&apos;s budget
+          {budgetTitle}
         </CardTitle>
         <Button asChild variant="ghost" size="sm" className="text-slate-500">
           <Link href="/budgets">
@@ -113,7 +117,7 @@ export function BudgetCard() {
             >
               {total.status === "exceeded"
                 ? `Over budget by ${formatINR(-total.remaining)}`
-                : `${formatINR(total.remaining)} left for the rest of the month`}
+                : `${formatINR(total.remaining)} remaining in this budget`}
             </p>
           </div>
         )}
@@ -122,7 +126,7 @@ export function BudgetCard() {
           <div className="space-y-2.5 border-t border-slate-100 pt-4">
             <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-400">
               <TriangleAlert className="h-3.5 w-3.5" />
-              Running low this month
+              {monthProp ? "Running low" : "Running low this month"}
             </p>
             {atRisk.map((c) => (
               <div key={c.category} className="space-y-1">

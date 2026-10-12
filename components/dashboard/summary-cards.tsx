@@ -1,108 +1,118 @@
 "use client";
 
-import { Banknote, PiggyBank, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { Banknote, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransactions } from "@/components/providers/transactions-provider";
-import { computeTotals } from "@/lib/stats";
+import { computeTotals, monthTotals } from "@/lib/stats";
+import { monthLongLabel } from "@/lib/date";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export function SummaryCards() {
-  const { transactions, status } = useTransactions();
-  const totals = computeTotals(transactions);
+interface Props {
+  /** YYYY-MM month the three month-scoped cards should show. */
+  month: string;
+}
 
-  if (status === "loading") {
+/**
+ * Overview summary cards.
+ *  - Total Income / Total Expenses / Net Cash Flow: scoped to the selected month.
+ *    Net Cash Flow = income − expenses (savings are set aside, not an expense).
+ *  - Account Balance: all-time income − expenses − savings.
+ */
+export function SummaryCards({ month }: Props) {
+  const { transactions, status } = useTransactions();
+
+  if (!month || (status === "loading" && transactions.length === 0)) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-[118px] rounded-2xl" />
         ))}
       </div>
     );
   }
 
+  // Don't show fake ₹0.00 figures when the first load failed.
+  const failed = status === "error" && transactions.length === 0;
+
+  const m = monthTotals(transactions, month);
+  const totals = computeTotals(transactions);
+  const label = monthLongLabel(month);
+  const netPositive = m.net >= 0;
+
   const cards = [
     {
-      title: "Total Balance",
-      value: totals.balance,
-      icon: Wallet,
-      iconClass: "bg-navy-900 text-white",
-      sub: `${transactions.length} transaction${transactions.length === 1 ? "" : "s"}`,
-      accent: totals.balance >= 0 ? "text-navy-950" : "text-red-600",
-      showBreakdown: false,
-    },
-    {
       title: "Total Income",
-      value: totals.totalIncome,
+      value: m.income,
       icon: TrendingUp,
       iconClass: "bg-green-100 text-green-700",
-      sub: "All time",
+      sub: label,
       accent: "text-green-600",
-      showBreakdown: false,
     },
     {
       title: "Total Expenses",
-      value: totals.totalExpenses,
+      value: m.expenses,
       icon: TrendingDown,
       iconClass: "bg-red-100 text-red-600",
-      sub: "All time",
+      sub: label,
       accent: "text-red-600",
-      showBreakdown: false,
     },
     {
-      title: "Total Savings",
-      value: totals.totalSavings,
+      title: "Net Cash Flow",
+      value: m.net,
+      icon: Wallet,
+      iconClass: netPositive ? "bg-navy-900 text-white" : "bg-red-100 text-red-600",
+      sub: netPositive
+        ? `${label} · income − expenses`
+        : `Spent more than earned in ${label}`,
+      accent: netPositive ? "text-navy-950" : "text-red-600",
+    },
+    {
+      title: "Account Balance",
+      value: totals.balance,
       icon: Banknote,
       iconClass: "bg-blue-100 text-blue-700",
-      sub: "Set aside, not an expense",
-      accent: "text-blue-700",
-      showBreakdown: false,
-    },
-    {
-      title: "Current Month Savings",
-      value: totals.currentMonthSavings,
-      icon: PiggyBank,
-      iconClass: "bg-indigo-100 text-indigo-700",
-      sub: `${totals.currentMonthSavings >= 0 ? "Saving" : "Overspending"} this month`,
-      accent: totals.currentMonthSavings >= 0 ? "text-navy-950" : "text-red-600",
-      showBreakdown: true,
+      sub: "Income − expenses − savings · all time",
+      accent: totals.balance >= 0 ? "text-navy-950" : "text-red-600",
+      savings: totals.totalSavings,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card key={card.title} className="p-5 transition-shadow hover:shadow-card-hover">
+          <Card key={card.title} className="p-5">
             <div className="flex items-start justify-between">
               <p className="text-sm font-medium text-slate-500">{card.title}</p>
               <span
                 className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-xl",
-                  card.iconClass
+                  failed ? "bg-slate-100 text-slate-400" : card.iconClass
                 )}
               >
                 <Icon className="h-[18px] w-[18px]" />
               </span>
             </div>
-            <p className={cn("mt-3 text-2xl font-bold tracking-tight", card.accent)}>
-              {formatINR(card.value)}
+            <p
+              className={cn(
+                "mt-3 text-2xl font-bold tracking-tight",
+                failed ? "text-slate-400" : card.accent
+              )}
+            >
+              {failed ? "—" : formatINR(card.value)}
             </p>
-            <p className="mt-1 text-xs text-slate-400">{card.sub}</p>
-            {card.showBreakdown && (
+            <p className="mt-1 text-xs text-slate-400">
+              {failed ? "Unable to load data" : card.sub}
+            </p>
+            {"savings" in card && card.savings !== undefined && !failed && (
               <div className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Income this month</span>
-                  <span className="font-semibold tabular-nums text-green-600">
-                    + {formatINR(totals.currentMonthIncome)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Expenses this month</span>
-                  <span className="font-semibold tabular-nums text-red-600">
-                    − {formatINR(totals.currentMonthExpenses)}
+                  <span className="text-slate-500">Set aside as savings</span>
+                  <span className="font-semibold tabular-nums text-blue-600">
+                    {formatINR(card.savings)}
                   </span>
                 </div>
               </div>

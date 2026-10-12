@@ -332,7 +332,7 @@ export default function ReportsPage() {
               <EmptyChart label="No data for this period." />
             ) : (
               <SavingsTrendArea
-                data={series.map((p) => ({ label: p.label, savings: p.savings }))}
+                data={series.map((p) => ({ label: p.label, net: p.savings }))}
               />
             )}
           </CardContent>

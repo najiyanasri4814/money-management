@@ -11,6 +11,10 @@ export interface PieDatum {
 interface Props {
   data: PieDatum[];
   height?: number;
+  /** Text shown when there are no slices, e.g. "No spending in October 2026 yet." */
+  emptyText?: string;
+  /** Render the built-in name legend on the right (default true). */
+  showLegend?: boolean;
 }
 
 const MAX_SLICES = 6;
@@ -25,13 +29,21 @@ export function groupSlices(data: PieDatum[]): PieDatum[] {
   return [...top, { name: "Other", value: otherValue }].filter((d) => d.value > 0);
 }
 
-export function ExpenseCategoryPie({ data, height = 280 }: Props) {
+export function ExpenseCategoryPie({
+  data,
+  height = 280,
+  emptyText = "No expenses recorded yet.",
+  showLegend = true,
+}: Props) {
   const slices = groupSlices(data);
 
   if (slices.length === 0) {
     return (
-      <div className="flex h-[280px] items-center justify-center text-sm text-slate-400">
-        No expenses recorded yet.
+      <div
+        className="flex items-center justify-center text-center text-sm text-slate-400"
+        style={{ height }}
+      >
+        {emptyText}
       </div>
     );
   }
@@ -55,16 +67,18 @@ export function ExpenseCategoryPie({ data, height = 280 }: Props) {
           ))}
         </Pie>
         <Tooltip content={<CurrencyTooltip />} />
-        <Legend
-          formatter={(value) => (
-            <span style={{ color: "#334155", fontSize: 12 }}>{value}</span>
-          )}
-          layout="vertical"
-          align="right"
-          verticalAlign="middle"
-          iconType="circle"
-          iconSize={8}
-        />
+        {showLegend && (
+          <Legend
+            formatter={(value) => (
+              <span style={{ color: "#334155", fontSize: 12 }}>{value}</span>
+            )}
+            layout="vertical"
+            align="right"
+            verticalAlign="middle"
+            iconType="circle"
+            iconSize={8}
+          />
+        )}
       </PieChart>
     </ResponsiveContainer>
   );
