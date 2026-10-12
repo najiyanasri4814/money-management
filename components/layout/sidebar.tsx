@@ -103,7 +103,7 @@ function SidebarBrand() {
         <Wallet className="h-[18px] w-[18px]" />
       </div>
       <div className="leading-tight">
-        <p className="text-sm font-bold tracking-tight text-navy-950">MoneyMngmt</p>
+        <p className="text-sm font-bold tracking-tight text-navy-950">Money Management</p>
         <p className="text-[11px] text-slate-400">Powered by Google Sheets</p>
       </div>
     </div>

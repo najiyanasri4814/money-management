@@ -10,6 +10,7 @@ const TITLES: Record<string, string> = {
   "/": "Overview",
   "/transactions": "Transactions",
   "/reports": "Reports",
+  "/budgets": "Budgets",
   "/settings": "Settings",
 };
 
@@ -20,7 +21,7 @@ interface TopbarProps {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const pathname = usePathname();
   const { refreshing, lastSync, status, error, refresh } = useTransactions();
-  const title = TITLES[pathname] ?? "MoneyMngmt";
+  const title = TITLES[pathname] ?? "Money Management";
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur-sm">

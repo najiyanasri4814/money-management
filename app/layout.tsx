@@ -5,8 +5,8 @@ import { BudgetsProvider } from "@/components/providers/budgets-provider";
 
 export const metadata: Metadata = {
   title: {
-    default: "MoneyMngmt — Personal Finance",
-    template: "%s · MoneyMngmt",
+    default: "Money Management — Personal Finance",
+    template: "%s · Money Management",
   },
   description:
     "Personal money management dashboard backed by Google Sheets — track income, expenses, and savings.",
