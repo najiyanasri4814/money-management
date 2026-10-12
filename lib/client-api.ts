@@ -83,6 +83,30 @@ export async function getBudgets(): Promise<BudgetRow[]> {
   return res.data;
 }
 
+export interface BudgetsStatus {
+  connected: boolean;
+  rowCount: number;
+  message?: string;
+}
+
+/**
+ * Probe the budgets backend without throwing — returns the raw Google message
+ * (e.g. "unknown action: listBudgets") when the deployment hasn't been
+ * updated yet, which makes the Settings diagnostics self-explanatory.
+ */
+export async function fetchBudgetsStatus(): Promise<BudgetsStatus> {
+  try {
+    const res = await request<{ data: BudgetRow[] }>("/api/budgets");
+    return { connected: true, rowCount: res.data.length };
+  } catch (err) {
+    return {
+      connected: false,
+      rowCount: 0,
+      message: err instanceof Error ? err.message : "Failed to reach the budgets API.",
+    };
+  }
+}
+
 export async function saveBudgets(
   month: string,
   rows: { category: string; amount: number }[]

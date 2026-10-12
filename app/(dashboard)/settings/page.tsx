@@ -20,7 +20,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransactions } from "@/components/providers/transactions-provider";
-import { fetchHealth } from "@/lib/client-api";
+import { fetchBudgetsStatus, fetchHealth, type BudgetsStatus } from "@/lib/client-api";
 import {
   DEFAULT_EXPENSE_CATEGORIES,
   DEFAULT_INCOME_CATEGORIES,
@@ -43,6 +43,7 @@ export default function SettingsPage() {
   const [newCat, setNewCat] = React.useState("");
   const [newMethod, setNewMethod] = React.useState("");
   const [health, setHealth] = React.useState<HealthResponse | null>(null);
+  const [budgetStatus, setBudgetStatus] = React.useState<BudgetsStatus | null>(null);
   const [testing, setTesting] = React.useState(false);
   const [healthError, setHealthError] = React.useState<string | null>(null);
 
@@ -55,8 +56,12 @@ export default function SettingsPage() {
     setTesting(true);
     setHealthError(null);
     try {
-      const result = await fetchHealth();
+      const [result, budgetResult] = await Promise.all([
+        fetchHealth(),
+        fetchBudgetsStatus(),
+      ]);
       setHealth(result);
+      setBudgetStatus(budgetResult);
     } catch (err) {
       setHealthError(err instanceof Error ? err.message : "Health check failed.");
     } finally {
@@ -120,6 +125,16 @@ export default function SettingsPage() {
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
               <Row label="Transaction rows loaded" value={String(transactions.length)} />
               <Row
+                label="Budget backend"
+                value={
+                  budgetStatus
+                    ? budgetStatus.connected
+                      ? `Connected · ${budgetStatus.rowCount} row${budgetStatus.rowCount === 1 ? "" : "s"}`
+                      : (budgetStatus.message ?? "Unavailable")
+                    : "—"
+                }
+              />
+              <Row
                 label="Last sync"
                 value={lastSync ? formatDateTime(lastSync) : "Never"}
                 mono={false}
@@ -147,6 +162,17 @@ export default function SettingsPage() {
             </div>
 
             {testing && <Skeleton className="h-16 w-full" />}
+
+            {!testing && budgetStatus && !budgetStatus.connected && (
+              <Alert variant="warning" title="Budgets are not connected to the sheet yet">
+                Google still answers with{" "}
+                <code className="rounded bg-amber-100/60 px-1.5 py-0.5 text-xs">
+                  {budgetStatus.message}
+                </code>
+                . The deployed Apps Script needs the redeploy described on the
+                Budgets page (or in the README) — transaction rows work fine.
+              </Alert>
+            )}
 
             {!testing && health && health.ok && (
               <Alert variant="success" title="Connection OK">
